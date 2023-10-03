@@ -12,4 +12,4 @@ In addition to R and RStudio, this repo requires the installation of [JAGS 4.3.1
 ## Model formulations
 Models are saved in the `scripts/` diretory. 
  - `model-v1` contains a simple version with only concurrent PAR and antecedent daytime mean VPD for 10 days at 1 day intervals. No VWC or random effects are included yet. 
- - `model-v2` begins to explore 
+ - `model-v2` explores the addition of VWC at two depths, which are indexed by treatment. Shallow VWC seems to require a longer antecedent period. Which two-way interactions are the most interesting? Random effects are not included yet. 
