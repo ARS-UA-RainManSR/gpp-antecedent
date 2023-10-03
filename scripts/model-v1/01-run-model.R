@@ -39,7 +39,7 @@ init <- function() {
 inits_list <- list(init(), init(), init())
 
 # Initialize model
-jm <- jags.model("scripts/model_v1/PAR_Dant.jags",
+jm <- jags.model("scripts/model-v1/PAR_Dant.jags",
                   data = dat_list,
                   inits = inits_list,
                   n.chains = 3)
