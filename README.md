@@ -8,3 +8,8 @@ This repo uses `renv` to reproduce the R environment. Type `renv::restore()` int
 The flux and environmental data are stored in a `data/` folder in the root directory. Please contact [Fangyue Zhang](mailto:fangyuezhang@arizona.edu) for the raw data files. 
 
 In addition to R and RStudio, this repo requires the installation of [JAGS 4.3.1](https://sourceforge.net/projects/mcmc-jags/files/) on your computer. 
+
+## Model formulations
+Models are saved in the `scripts/` diretory. 
+ - `model-v1` contains a simple version with only concurrent PAR and antecedent daytime mean VPD for 10 days at 1 day intervals. No VWC or random effects are included yet. 
+ - `model-v2` begins to explore 
