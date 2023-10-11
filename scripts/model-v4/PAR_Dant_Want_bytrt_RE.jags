@@ -1,0 +1,122 @@
+model{
+
+  # Likelihood
+  for(i in 1:N){
+    GPP[i] ~ dnorm(mu[i], tau)
+    GPP.rep[i] ~ dnorm(mu[i], tau)
+    
+  # Mean model
+  mu[i] = 
+  B[1, trt[i]] +
+  B[2, trt[i]] * PAR[i] +
+  B[3, trt[i]] * Dant[i] +
+  B[4, trt[i]] * W12ant[i, trt[i]] +
+  B[5, trt[i]] * W25ant[i, trt[i]] +
+  B[6, trt[i]] * Dant[i] * W12ant[i, trt[i]] +
+  B[7, trt[i]] * Dant[i] * W25ant[i, trt[i]] +
+  Eps[block[i], trt[i]]
+  
+  # Antecedent variable is the sum across all timesteps
+    Dant[i] <- sum(DTemp[i,]) # vector
+    W12ant[i, trt[i]] <- sum(W12Temp[i, trt[i], ]) # matrix
+    W25ant[i, trt[i]] <- sum(W25Temp[i, trt[i], ]) # matrix
+  
+  # Multiply weight by each timestep of covariate
+  # Indexing tricks used to accomodate flexible time step size pA - pC
+    for(k in 1:nlagA){
+      DTemp[i,k] <- mean(Dmean[(doy[i]-k*pA+1):(doy[i]-k*pA+pA)])*wA[k]
+    }
+    
+    for(j in 1:NTrt) {
+      for(k in 1:nlagB){
+        W12Temp[i,j,k] <- mean(W12[(doy[i]-k*pB+1):(doy[i]-k*pB+pB), j])*wB[j,k]
+      }
+    }
+    
+    for(j in 1:NTrt) {
+      for(k in 1:nlagC){
+        W25Temp[i,j,k] <- mean(W25[(doy[i]-k*pC+1):(doy[i]-k*pC+pC), j])*wC[j,k]
+      }
+    }
+    
+    
+  # Part of the calculation of the posterior predictive loss	
+    Sqdiff[i] <- pow(GPP.rep[i] - GPP[i],2)
+  }
+  
+  # Sum of the deltas for each covariate
+  sumA <- sum(deltaA[])
+  
+  for(j in 1:NTrt) {
+    sumB[j] <- sum(deltaB[j,])
+    sumC[j] <- sum(deltaC[j,])
+  }
+  
+  # Compute Bayesian R2 value
+  var.pred <- pow(sd(mu[]),2)
+  var.resid <- 1/tau
+  R2_resid <- var.pred/(var.pred + var.resid)
+  
+  # Priors for weights using the delta trick
+  # Daily variable weights
+  # Dant
+  for(k in 1:nlagA){
+    wA[k] <- deltaA[k] / sumA
+    deltaA[k] ~ dgamma(alphaA[k], 1)
+  }
+  
+  # W12ant
+  for(j in 1:NTrt) {
+    for(k in 1:nlagB){
+      wB[j,k] <- deltaB[j,k] / sumB[j]
+      deltaB[j,k] ~ dgamma(alphaB[j,k], 1)
+    }
+  }
+  
+  # W25ant
+  for(j in 1:NTrt) {
+    for(k in 1:nlagC){
+      wC[j,k] <- deltaC[j,k] / sumC[j]
+      deltaC[j,k] ~ dgamma(alphaC[j,k], 1)
+    }
+  }
+  
+  # Normal priors for regression parameters
+  for(j in 1:NParam) { # Number of parameters in linear models
+    for(k in 1:NTrt){
+      B[j, k] ~ dnorm(0, 0.001)
+      
+      # identifiable regression intercepts
+      Bstar[j,k] <- B[j,k] + equals(j, 1) * mean.eps[k]
+    }
+  }
+  
+  # Conjugate normal priors for house/block random effects, post-sweeping option
+  for(k in 1:NTrt){
+    for(g in 1:NBlock){ # Number of houses/blocks
+      # Non-identifiable random effects
+      Eps[g,k] ~ dnorm(0, tau.eps)
+    
+      # Identifiable random effects
+      Estar[g,k] <- Eps[g,k] - mean.eps[k]
+    }
+  }
+  
+  # Calculate average eps value
+  for(k in 1:NTrt){
+    mean.eps[k] <- mean(Eps[, k])
+  }
+
+  # Uniformm prior for among-house/block standard deviation
+  sig.eps ~ dunif(0, 1)
+  tau.eps <- 1/pow(sig.eps, 2)
+
+  
+  # Priors for variance terms
+  tau ~ dgamma(0.1, 0.1)
+  sig <- pow(tau, -0.5)
+    
+  # Posterior predictive loss is the posterior mean of Dsum
+  Dsum <- sum(Sqdiff[])
+  
+}

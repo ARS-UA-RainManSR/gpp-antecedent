@@ -13,3 +13,5 @@ In addition to R and RStudio, this repo requires the installation of [JAGS 4.3.1
 Models are saved in the `scripts/` diretory. 
  - `model-v1` contains a simple version with only concurrent PAR and antecedent daytime mean VPD for 10 days at 1 day intervals. No VWC or random effects are included yet. 
  - `model-v2` explores the addition of VWC at two depths, which are indexed by treatment. Shallow VWC seems to require a longer antecedent period. Which two-way interactions are the most interesting? Random effects are not included yet. 
+ - `model-v3` separate out VWC antecedent effects by treatment and slims down the number of interaction terms. Random effects are not included yet. 
+ - `model-v4` adds random effects with post sweeping to improve identifiability with the intercept terms. Includes code for replicated data and model evaluation
